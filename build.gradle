@@ -34,8 +34,8 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 36
-        versionCode 2
-        versionName "2.0.1"
+        versionCode 3
+        versionName "2.0.3"
     }
 
     buildTypes {
@@ -65,14 +65,27 @@ dependencies {
 /** ------ ADD THIS: publication that uses components.release ------ */
 publishing {
     publications {
-        release(MavenPublication) {
+        create("release", MavenPublication) {
+            groupId = "com.github.appuraja1"
+            artifactId = "PdfiumAndroid-16kb"
+            version = "local"
+
+            // DEFER wiring to after variants are created
+            // (either of these two styles is fine)
+
+            // Style A (afterEvaluate + direct reference)
+            // will throw if component truly doesn't exist
+            // afterEvaluate { from components.release }
+
+            // Style B (safe find; no crash if missing)
             afterEvaluate {
-                from components.release
+                def comp = components.findByName("release")
+                if (comp == null) {
+                    throw new GradleException("Android 'release' component not found. Check android.publishing.singleVariant('release').")
+                }
+                from comp
             }
-            // JitPack will override group & version, but harmless to declare:
-            groupId = project.findProperty("GROUP") ?: "com.github.appuraja1"
-            artifactId = project.findProperty("POM_ARTIFACT_ID") ?: "PdfiumAndroid-16kb"
-            version = project.findProperty("VERSION_NAME") ?: "local"
+
             pom {
                 name = "PdfiumAndroid-16kb"
                 description = "Pdfium fork with 16KB page-size support"
@@ -81,3 +94,4 @@ publishing {
         }
     }
 }
+
