@@ -1,68 +1,61 @@
+// ---- classic style: NO settings.gradle needed ----
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.12.2'
+        // Use a real AGP version published on Google repo
+        classpath "com.android.tools.build:gradle:8.12.2"
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-
-android {
-    namespace 'com.shockwave.pdfium'
-    compileSdk 36
-    ndkVersion "29.0.13113456"
-
-    externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
-        }
-    }
-
-    sourceSets {
-        main {
-            jni.srcDirs = []
-            jniLibs.srcDir 'src/main/libs'
-        }
-    }
-
-    buildFeatures { buildConfig true }
-
-    defaultConfig {
-        minSdk 21
-        targetSdk 36
-        versionCode 3
-        versionName "2.0.3"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    // optional but nice to have
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
-    }
-}
-
+// Make sure the project itself also sees google() + mavenCentral()
 repositories {
     google()
     mavenCentral()
 }
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+apply plugin: "com.android.library"
+apply plugin: "maven-publish"
+
+android {
+    namespace "com.shockwave.pdfium"
+    compileSdk 36
+
+    // ===== Pick ONE =====
+    // A) If you ALREADY ship prebuilt .so in src/main/libs/<abi>/, DISABLE native build on CI:
+    sourceSets {
+        main {
+            jni.srcDirs = []                 // don't auto-run ndk-build
+            jniLibs.srcDir "src/main/libs"   // put lib*.so under ABI folders here
+        }
+    }
+
+    // B) If you MUST compile native on CI, comment A) and UNCOMMENT below:
+    // ndkVersion "29.0.13113456"
+    // externalNativeBuild { ndkBuild { path "src/main/jni/Android.mk" } }
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 36
+        versionCode 4
+        versionName "2.0.4"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    // expose 'release' component for publishing
+    publishing {
+        singleVariant("release") { withSourcesJar() }
+    }
 }
 
-/** ------ ADD THIS: publication that uses components.release ------ */
 publishing {
     publications {
         create("release", MavenPublication) {
@@ -70,19 +63,10 @@ publishing {
             artifactId = "PdfiumAndroid-16kb"
             version = "local"
 
-            // DEFER wiring to after variants are created
-            // (either of these two styles is fine)
-
-            // Style A (afterEvaluate + direct reference)
-            // will throw if component truly doesn't exist
-            // afterEvaluate { from components.release }
-
-            // Style B (safe find; no crash if missing)
+            // wire AFTER AGP creates the component
             afterEvaluate {
                 def comp = components.findByName("release")
-                if (comp == null) {
-                    throw new GradleException("Android 'release' component not found. Check android.publishing.singleVariant('release').")
-                }
+                if (comp == null) throw new GradleException("Android 'release' component not found")
                 from comp
             }
 
@@ -94,4 +78,3 @@ publishing {
         }
     }
 }
-
