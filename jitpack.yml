@@ -1,26 +1,5 @@
-# jitpack.yml  (place in repository root)
+# jitpack.yml
 jdk:
   - openjdk17
-
-env:
-  # JitPack's default SDK path; don't change
-  ANDROID_HOME: /opt/android-sdk-linux
-  ANDROID_SDK_ROOT: /opt/android-sdk-linux
-  ANDROID_NDK_HOME: /opt/android-sdk-linux/ndk/29.0.13113456
-
-before_install:
-  # Update sdkmanager and install cmdline-tools
-  - yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
-  - ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --update
-  # Install what AGP/your build expects (adjust api/build-tools if needed)
-  - ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-  # Install the exact NDK JitPack log requested
-  - ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.13113456"
-  # Accept licenses non-interactively
-  - yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
-
-# If your library module is NOT the root project, tell JitPack which task to run:
-# (replace :pdfium-android (example) with your real module path)
-# This avoids the "publishToMavenLocal task not found" at the root.
 install:
-  - ./gradlew :android-pdf-viewer:publishReleasePublicationToMavenLocal
+  - ./gradlew publishReleasePublicationToMavenLocal
