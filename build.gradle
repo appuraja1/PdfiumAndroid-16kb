@@ -3,7 +3,6 @@ buildscript {
         google()
         mavenCentral()
     }
-
     dependencies {
         classpath 'com.android.tools.build:gradle:8.12.2'
     }
@@ -30,9 +29,7 @@ android {
         }
     }
 
-    buildFeatures {
-        buildConfig true
-    }
+    buildFeatures { buildConfig true }
 
     defaultConfig {
         minSdk 21
@@ -47,6 +44,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    // optional but nice to have
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 repositories {
@@ -58,4 +62,22 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-
+/** ------ ADD THIS: publication that uses components.release ------ */
+publishing {
+    publications {
+        release(MavenPublication) {
+            afterEvaluate {
+                from components.release
+            }
+            // JitPack will override group & version, but harmless to declare:
+            groupId = project.findProperty("GROUP") ?: "com.github.appuraja1"
+            artifactId = project.findProperty("POM_ARTIFACT_ID") ?: "PdfiumAndroid-16kb"
+            version = project.findProperty("VERSION_NAME") ?: "local"
+            pom {
+                name = "PdfiumAndroid-16kb"
+                description = "Pdfium fork with 16KB page-size support"
+                url = "https://github.com/appuraja1/PdfiumAndroid-16kb"
+            }
+        }
+    }
+}
