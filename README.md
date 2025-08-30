@@ -37,5 +37,5 @@ dependencyResolutionManagement {
 Then add the dependency in your app/build.gradle:
 
 dependencies {
-    implementation "com.github.appuraja1:PdfiumAndroid-16kb:v2.1"
+    implementation "com.github.appuraja1:PdfiumAndroid-16kb:v2.4"
 }
